@@ -1,5 +1,8 @@
 '''
 U-Net structure.
+
+For the model structure detail, look model_structure.log
+or run this script.
 '''
 #%%
 import torch
