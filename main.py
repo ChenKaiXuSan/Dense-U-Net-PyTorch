@@ -1,7 +1,7 @@
 # %%
 import os
 
-from trainer import Trainer_dcgan
+from trainer import Trainer_unet
 from utils.utils import *
 from dataset.dataset import getdDataset
 
@@ -15,13 +15,9 @@ def get_parameters():
     parser = argparse.ArgumentParser()
 
     # Model hyper-parameters
-    parser.add_argument('--model', type=str, default='dcgan', choices=['gan', 'dcgan'])
+    parser.add_argument('--model', type=str, default='unet', choices=['unet', 'fcn'])
     parser.add_argument('--img_size', type=int, default=64)
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
-    parser.add_argument('--g_num', type=int, default=5, help='train the generator every 5 steps')
-    parser.add_argument('--z_dim', type=int, default=100, help='noise dim')
-    parser.add_argument('--g_conv_dim', type=int, default=64)
-    parser.add_argument('--d_conv_dim', type=int, default=64)
     parser.add_argument('--version', type=str, default='test', help='the version of the path, for implement')
 
     # Training setting
@@ -29,8 +25,7 @@ def get_parameters():
     parser.add_argument('--batch_size', type=int, default=64, help='batch size for the dataloader')
     parser.add_argument('--num_workers', type=int, default=2)
     # TTUR 
-    parser.add_argument('--g_lr', type=float, default=0.0001, help='use TTUR lr rate for Adam')
-    parser.add_argument('--d_lr', type=float, default=0.0004, help='use TTUR lr rate for Adam')
+    parser.add_argument('--lr', type=float, default=0.0001, help='use TTUR lr rate for Adam')
     parser.add_argument('--beta1', type=float, default=0.5)
     parser.add_argument('--beta2', type=float, default=0.999)
 
@@ -77,8 +72,8 @@ def main(config):
     make_folder(config.sample_path, config.version + '/fake_images')
 
     if config.train:
-        if config.model == 'dcgan':
-            trainer = Trainer_dcgan(data_loader, config)
+        if config.model == 'unet':
+            trainer = Trainer_unet(data_loader, config)
         trainer.train()
     
 # %% 

@@ -2,21 +2,29 @@
 """
 wgan with different loss function, used the pure dcgan structure.
 """
-import os 
+from cProfile import label
+from collections import defaultdict
+from math import gamma
+import os
+from tabnanny import verbose 
 import time
 import torch
 import datetime
 
 import torch.nn as nn 
 import torchvision
+import torch.nn.functional as F
+from torch.optim import lr_scheduler
 
-from models.dcgan import Generator, Discriminator
+from models.U_Net import UNet
 from utils.utils import *
 
+import copy
+
 # %%
-class Trainer_dcgan(object):
+class Trainer_unet(object):
     def __init__(self, data_loader, config):
-        super(Trainer_dcgan, self).__init__()
+        super(Trainer_unet, self).__init__()
 
         # data loader 
         self.data_loader = data_loader
@@ -74,127 +82,105 @@ class Trainer_dcgan(object):
         Training
         '''
 
-        # fixed input for debugging
-        # I think if the batch size very large, the cpu memory will oversize.
-        fixed_z = tensor2var(torch.randn(self.batch_size, self.z_dim, 1, 1)) # (*, 100, 1, 1)
+        best_model_wts = copy.deepcopy(self.unet.state_dict())
+        best_loss = 1e10
 
         for epoch in range(self.epochs):
             # start time
             start_time = time.time()
 
-            for i, (real_images, _) in enumerate(self.data_loader):
+            print('Epoch {}/{}'.format(epoch, self.epochs - 1))
+            print('-' * 10)
 
-                # configure input 
-                real_images = tensor2var(real_images)
-                
-                # adversarial ground truths
-                valid = tensor2var(torch.full((real_images.size(0),), 0.9)) # (*, )
-                fake = tensor2var(torch.full((real_images.size(0),), 0.0)) #(*, )
-                
-                # ==================== Train D ==================
-                self.D.train()
-                self.G.train()
+            # each epoch has a training and validation phase 
+            for phase in ['train', 'val']:
+                if phase == 'train':
+                    self.exp_lr_scheduler.step()
+                    for param_group in self.unet_optimizer.param_groups:
+                        print('LR', param_group['lr'])
 
-                self.D.zero_grad()
+                    self.unet.train()
+                else:
+                    self.unet.eval()
 
-                # compute loss with real images 
-                d_out_real = self.D(real_images)
+                metrics = defaultdict(float)
+                epoch_samples = 0
 
-                d_loss_real = self.adversarial_loss_sigmoid(d_out_real, valid)
+                for i, (inputs, labels) in enumerate(self.data_loader):
 
-                # noise z for generator
-                z = tensor2var(torch.randn(real_images.size(0), self.z_dim, 1, 1)) # 64, 100, 1, 1
+                    # configure input 
+                    inputs = tensor2var(inputs)
+                    labels = tensor2var(labels)
 
-                fake_images = self.G(z) # (*, c, 64, 64)
-                d_out_fake = self.D(fake_images) # (*,)
+                    # zero the parameter gradients 
+                    self.unet_optimizer.zero_grad()
 
-                d_loss_fake = self.adversarial_loss_sigmoid(d_out_fake, fake)
+                    # forward 
+                    # track history if only in train 
+                    with torch.set_grad_enabled(phase=='train'):
+                        outputs = self.unet(inputs)
+                        loss = self.calc_loss(outputs, labels, metrics)
 
-                # total d loss
-                d_loss = d_loss_real + d_loss_fake
+                        # backward + optimzer only if in training phase 
+                        if phase == 'train':
+                            loss.backward()
+                            self.unet_optimizer.step()
 
-                d_loss.backward()
-                # update D
-                self.d_optimizer.step()
+                    # statistics 
+                    epoch_samples += inputs.size(0)
 
-                # train the generator every 5 steps
-                if i % self.g_num == 0:
+                self.print_metrics(metrics, epoch_samples, phase)
+                epoch_loss = metrics['loss'] / epoch_samples
 
-                    # =================== Train G and gumbel =====================
-                    self.G.zero_grad()
-                    # create random noise 
-                    fake_images = self.G(z)
-
-                    # compute loss with fake images 
-                    g_out_fake = self.D(fake_images) # batch x n
-
-                    g_loss_fake = self.adversarial_loss_sigmoid(g_out_fake, valid)
-
-                    g_loss_fake.backward()
-                    # update G
-                    self.g_optimizer.step()
+                # deep copy the model 
+                if phase == 'val' and epoch_loss < best_loss:
+                    print("saving best model")
+                    best_loss = epoch_loss
+                    best_model_wts = copy.deepcopy(self.unet.state_dict())
 
             # log to the tensorboard
-            self.logger.add_scalar('d_loss', d_loss.data, epoch)
-            self.logger.add_scalar('g_loss_fake', g_loss_fake.data, epoch)
-            # end one epoch
+            self.logger.add_scalar('unet_loss', best_loss.item(), epoch)
+        # end one epoch
 
             # print out log info
             if (epoch) % self.log_step == 0:
                 elapsed = time.time() - start_time
-                elapsed = str(datetime.timedelta(seconds=elapsed))
-                print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, "
-                    .format(elapsed, epoch, self.epochs, epoch,
-                            self.epochs, d_loss.item(), g_loss_fake.item()))
+                print('{:.0f}m {:0f}s'.format(elapsed // 60, elapsed % 60))
 
-            # sample images 
-            if (epoch) % self.sample_step == 0:
-                self.G.eval()
-                # save real image
-                save_sample(self.sample_path + '/real_images/', real_images, epoch)
-                
-                with torch.no_grad():
-                    fake_images = self.G(fixed_z)
-                    # save fake image 
-                    save_sample(self.sample_path + '/fake_images/', fake_images, epoch)
-                    
-                # sample sample one images
-                save_sample_one_image(self.sample_path, real_images, fake_images, epoch)
+        print('Best val loss: {:4f}'.format(best_loss))
 
-            # save model checkpoint
-            if (epoch) % self.model_save_step == 0:
-                torch.save({
-                    'epoch': epoch,
-                    'G_state_dict': self.G.state_dict(),
-                    # 'G_optimizer_state_dict': self.g_optimizer.state_dict(),
-                    'g_loss': g_loss_fake,
-                    'D_state_dict': self.D.state_dict(),
-                    'd_loss': d_loss,
-                },
-                os.path.join(self.model_save_path, '{}.pth.tar'.format(epoch))
-                )
+        # load best model weights 
+        self.unet.load_state_dict(best_model_wts)
+        
+            # # save model checkpoint
+            # if (epoch) % self.model_save_step == 0:
+            #     torch.save({
+            #         'epoch': epoch,
+            #         'G_state_dict': self.G.state_dict(),
+            #         # 'G_optimizer_state_dict': self.g_optimizer.state_dict(),
+            #         'g_loss': g_loss_fake,
+            #         'D_state_dict': self.D.state_dict(),
+            #         'd_loss': d_loss,
+            #     },
+            #     os.path.join(self.model_save_path, '{}.pth.tar'.format(epoch))
+            #     )
 
 
     def build_model(self):
 
-        self.G = Generator(image_size = self.imsize, z_dim = self.z_dim, conv_dim = self.g_conv_dim, channels = self.channels).cuda()
-        self.D = Discriminator(image_size = self.imsize, conv_dim = self.d_conv_dim, channels = self.channels).cuda()
+        self.unet = UNet(n_class=6)
 
-        # apply the weights_init to randomly initialize all weights
-        # to mean=0, stdev=0.2
-        self.G.apply(weights_init)
-        self.D.apply(weights_init)
-        
         # optimizer 
-        self.g_optimizer = torch.optim.Adam(self.G.parameters(), self.g_lr, [self.beta1, self.beta2])
-        self.d_optimizer = torch.optim.Adam(self.D.parameters(), self.d_lr, [self.beta1, self.beta2])
+        self.unet_optimizer = torch.optim.Adam(self.unet.parameters(), lr=self.lr, betas=[self.beta1, self.beta2])
+
+        # lr scheduler 
+        self.exp_lr_scheduler = lr_scheduler.StepLR(self.unet_optimizer, step_size=25, gamma=0.1, verbose=True)
 
         # for orignal gan loss function
         self.adversarial_loss_sigmoid = nn.BCEWithLogitsLoss()
 
         # print networks
-        print(self.G)
-        print(self.D)
+        print(self.unet)
 
     def build_tensorboard(self):
         from torch.utils.tensorboard import SummaryWriter
@@ -206,3 +192,37 @@ class Trainer_dcgan(object):
 
             self.logger.add_image(text + str(step), img_grid, step)
             self.logger.close()
+
+    # loss function 
+    def dice_loss(pred, target, smooth = 1.):
+        pred = pred.contiguous()
+        target = target.contiguous()    
+
+        intersection = (pred * target).sum(dim=2).sum(dim=2)
+        
+        loss = (1 - ((2. * intersection + smooth) / (pred.sum(dim=2).sum(dim=2) + target.sum(dim=2).sum(dim=2) + smooth)))
+        
+        return loss.mean()
+
+    def calc_loss(self, pred, target, metrics, bce_weight=0.5):
+        bce = F.binary_cross_entropy_with_logits(pred, target)
+
+        pred = torch.sigmoid(pred)
+        dice = self.dice_loss(pred, target)
+
+        loss = bce * bce_weight + dice * (1 - bce_weight)
+
+        metrics['bce'] += bce.data.cpu().numpy() * target.size(0)
+        metrics['dice'] += dice.data.cpu().numpy() * target.size(0)
+        metrics['loss'] += loss.data.cpu().numpy() * target.size(0)
+        
+        return loss
+
+    # metrics
+    def print_metrics(self, metrics, epoch_samples, phase):
+        outputs = []
+        for k in metrics.keys():
+            outputs.append("{}: {:4f}".format(k, metrics[k] / epoch_samples))
+
+        print("{}: {}".format(phase, ",".join(outputs)))
+
