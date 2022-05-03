@@ -1,9 +1,9 @@
 # %%
 import os
 
-from trainer import Trainer_dcgan
+from trainer import Trainer_unet
 from utils.utils import *
-from dataset.dataset import getdDataset
+from dataset.dataset import get_Dataloader
 
 # set the gpu number
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -15,13 +15,9 @@ def get_parameters():
     parser = argparse.ArgumentParser()
 
     # Model hyper-parameters
-    parser.add_argument('--model', type=str, default='dcgan', choices=['gan', 'dcgan'])
-    parser.add_argument('--img_size', type=int, default=64)
+    parser.add_argument('--model', type=str, default='unet', choices=['unet', 'fcn'])
+    parser.add_argument('--img_size', type=int, default=128)
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
-    parser.add_argument('--g_num', type=int, default=5, help='train the generator every 5 steps')
-    parser.add_argument('--z_dim', type=int, default=100, help='noise dim')
-    parser.add_argument('--g_conv_dim', type=int, default=64)
-    parser.add_argument('--d_conv_dim', type=int, default=64)
     parser.add_argument('--version', type=str, default='test', help='the version of the path, for implement')
 
     # Training setting
@@ -29,8 +25,7 @@ def get_parameters():
     parser.add_argument('--batch_size', type=int, default=64, help='batch size for the dataloader')
     parser.add_argument('--num_workers', type=int, default=2)
     # TTUR 
-    parser.add_argument('--g_lr', type=float, default=0.0001, help='use TTUR lr rate for Adam')
-    parser.add_argument('--d_lr', type=float, default=0.0004, help='use TTUR lr rate for Adam')
+    parser.add_argument('--lr', type=float, default=1e-3, help='use TTUR lr rate for Adam')
     parser.add_argument('--beta1', type=float, default=0.5)
     parser.add_argument('--beta2', type=float, default=0.999)
 
@@ -40,11 +35,11 @@ def get_parameters():
     # Misc
     parser.add_argument('--train', type=str2bool, default=True)
     parser.add_argument('--parallel', type=str2bool, default=False)
-    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'cifar10', 'fashion'])
+    parser.add_argument('--dataset', type=str, default='lgg', choices=['lgg'])
     parser.add_argument('--use_tensorboard', type=str2bool, default=True, help='use tensorboard to record the loss')
 
     # Path
-    parser.add_argument('--dataroot', type=str, default='../data', help='dataset path')
+    parser.add_argument('--dataroot', type=str, default="/workspace/data/lgg-mri-segmentation/kaggle_3m/", help='dataset path')
     parser.add_argument('--log_path', type=str, default='./logs', help='the output log path')
     parser.add_argument('--model_save_path', type=str, default='./checkpoint', help='model save path')
     parser.add_argument('--sample_path', type=str, default='./samples', help='the generated sample saved path')
@@ -60,7 +55,7 @@ def get_parameters():
 # %%
 def main(config):
     # data loader 
-    data_loader = getdDataset(config)
+    train_dataloader, val_dataloader, test_dataloader = get_Dataloader(config)
 
     # delete the exists path
     del_folder(config.sample_path, config.version)
@@ -77,8 +72,8 @@ def main(config):
     make_folder(config.sample_path, config.version + '/fake_images')
 
     if config.train:
-        if config.model == 'dcgan':
-            trainer = Trainer_dcgan(data_loader, config)
+        if config.model == 'unet':
+            trainer = Trainer_unet(train_dataloader, config)
         trainer.train()
     
 # %% 

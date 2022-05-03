@@ -1,0 +1,24 @@
+.
+|-- README.md
+|-- dataset
+|   |-- __init__.py
+|   |-- brain_dataset.ipynb
+|   |-- dataset.png
+|   `-- dataset.py
+|-- list.txt
+|-- main.py
+|-- models
+|   |-- U_Net.py
+|   `-- __init__.py
+|-- requirements.txt
+|-- toy
+|   |-- FCN_pytorch.ipynb
+|   |-- helper.py
+|   |-- simulation.py
+|   `-- unet_pytorch.ipynb
+|-- trainer.py
+`-- utils
+    |-- __init__.py
+    `-- utils.py
+
+4 directories, 17 files
