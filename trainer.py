@@ -2,32 +2,28 @@
 """
 
 """
-from cProfile import label
 from collections import defaultdict
-from math import gamma
 import os
-from tabnanny import verbose 
 import time
 import torch
-import datetime
 
-import torch.nn as nn 
 import torchvision
-import torch.nn.functional as F
 from torch.optim import lr_scheduler
 
 from models.U_Net import UNet
 from utils.utils import *
+from utils.helper import *
 
 import copy
 
 # %%
 class Trainer_unet(object):
-    def __init__(self, data_loader, config):
+    def __init__(self, train_dataloader, val_dataloader, config):
         super(Trainer_unet, self).__init__()
 
         # data loader 
-        self.train_data_loader = data_loader
+        self.train_data_loader = train_dataloader
+        self.val_data_loader = val_dataloader
 
         # exact model and loss 
         self.model = config.model
@@ -95,13 +91,17 @@ class Trainer_unet(object):
                         print('LR', param_group['lr'])
 
                     self.unet.train()
+
+                    data_loader = self.train_data_loader
                 else:
                     self.unet.eval()
+
+                    data_loader = self.val_data_loader
 
                 metrics = defaultdict(float)
                 epoch_samples = 0
 
-                for i, (data, target) in enumerate(self.train_data_loader):
+                for i, (data, target) in enumerate(data_loader):
 
                     # configure input 
                     inputs = tensor2var(data)
@@ -114,7 +114,7 @@ class Trainer_unet(object):
                     # track history if only in train 
                     with torch.set_grad_enabled(phase=='train'):
                         outputs = self.unet(inputs)
-                        loss = self.calc_loss(outputs, labels, metrics)
+                        loss = calc_loss(outputs, labels, metrics)
 
                         # backward + optimzer only if in training phase 
                         if phase == 'train':
@@ -133,33 +133,26 @@ class Trainer_unet(object):
                     best_loss = epoch_loss
                     best_model_wts = copy.deepcopy(self.unet.state_dict())
 
+                    # save best model checkpoint 
+                    torch.save({
+                        'epoch': epoch,
+                        'state_dict': best_model_wts,
+                        'loss': epoch_loss,
+                    },
+                    os.path.join(self.model_save_path, '{}.pth.tar'.format(epoch))
+                    )
+
+            elapsed = time.time() - start_time
+            print('Time: {:.0f}m {:0f}s'.format(elapsed // 60, elapsed % 60))
+            print('Best val loss: {:4f}'.format(best_loss))
+
             # log to the tensorboard
             self.logger.add_scalar('unet_loss', best_loss.item(), epoch)
         # end one epoch
 
-            # print out log info
-            if (epoch) % self.log_step == 0:
-                elapsed = time.time() - start_time
-                print('{:.0f}m {:0f}s'.format(elapsed // 60, elapsed % 60))
-
-        print('Best val loss: {:4f}'.format(best_loss))
-
         # load best model weights 
         self.unet.load_state_dict(best_model_wts)
         
-            # # save model checkpoint
-            # if (epoch) % self.model_save_step == 0:
-            #     torch.save({
-            #         'epoch': epoch,
-            #         'G_state_dict': self.G.state_dict(),
-            #         # 'G_optimizer_state_dict': self.g_optimizer.state_dict(),
-            #         'g_loss': g_loss_fake,
-            #         'D_state_dict': self.D.state_dict(),
-            #         'd_loss': d_loss,
-            #     },
-            #     os.path.join(self.model_save_path, '{}.pth.tar'.format(epoch))
-            #     )
-
 
     def build_model(self):
 
@@ -188,40 +181,12 @@ class Trainer_unet(object):
             self.logger.add_image(text + str(step), img_grid, step)
             self.logger.close()
 
-    # loss function 
-
-    # segmentation quality metric 
-    def dice_loss(self, pred, target, smooth = 1.):
-        pred = pred.contiguous()
-        target = target.contiguous()    
-
-        intersection = (pred * target).sum(dim=2).sum(dim=2)
-        
-        loss = (1 - ((2. * intersection + smooth) / (pred.sum(dim=2).sum(dim=2) + target.sum(dim=2).sum(dim=2) + smooth)))
-        
-        return loss.mean()
-
-    # segmentation loss
-    def calc_loss(self, pred, target, metrics, bce_weight=0.5):
-        bce = F.binary_cross_entropy_with_logits(pred, target)
-
-        pred = torch.sigmoid(pred).clone()
-
-        dice = self.dice_loss(pred, target)
-
-        loss = bce * bce_weight + dice * (1 - bce_weight)
-
-        metrics['bce'] += bce.data.cpu().numpy() * target.size(0)
-        metrics['dice'] += dice.data.cpu().numpy() * target.size(0)
-        metrics['loss'] += loss.data.cpu().numpy() * target.size(0)
-        
-        return loss
-
+   
     # metrics
     def print_metrics(self, metrics, epoch_samples, phase):
         outputs = []
         for k in metrics.keys():
-            outputs.append("{}: {:4f}".format(k, metrics[k] / epoch_samples))
+            outputs.append(" {}: {:4f}".format(k, metrics[k] / epoch_samples))
 
-        print("{}: {}".format(phase, ",".join(outputs)))
+        print("{}: {} ".format(phase, ",".join(outputs)))
 

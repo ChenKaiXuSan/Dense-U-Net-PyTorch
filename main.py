@@ -6,7 +6,7 @@ from utils.utils import *
 from dataset.dataset import get_Dataloader
 
 # set the gpu number
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import argparse
 # %%
@@ -21,7 +21,7 @@ def get_parameters():
     parser.add_argument('--version', type=str, default='test', help='the version of the path, for implement')
 
     # Training setting
-    parser.add_argument('--epochs', type=int, default=10000, help='numer of epochs of training')
+    parser.add_argument('--epochs', type=int, default=500, help='numer of epochs of training')
     parser.add_argument('--batch_size', type=int, default=64, help='batch size for the dataloader')
     parser.add_argument('--num_workers', type=int, default=2)
     # TTUR 
@@ -67,13 +67,9 @@ def main(config):
     make_folder(config.log_path, config.version)
     make_folder(config.model_save_path, config.version)
     
-    # save sample images
-    make_folder(config.sample_path, config.version + '/real_images')
-    make_folder(config.sample_path, config.version + '/fake_images')
-
     if config.train:
         if config.model == 'unet':
-            trainer = Trainer_unet(train_dataloader, config)
+            trainer = Trainer_unet(train_dataloader, val_dataloader, config)
         trainer.train()
     
 # %% 

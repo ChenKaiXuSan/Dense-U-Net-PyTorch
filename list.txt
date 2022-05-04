@@ -1,16 +1,36 @@
 .
 |-- README.md
+|-- __pycache__
+|   `-- trainer.cpython-38.pyc
+|-- checkpoint
+|   |-- debug
+|   |   `-- 0.pth.tar
+|   `-- test
 |-- dataset
 |   |-- __init__.py
+|   |-- __pycache__
+|   |   |-- __init__.cpython-38.pyc
+|   |   `-- dataset.cpython-38.pyc
 |   |-- brain_dataset.ipynb
 |   |-- dataset.png
 |   `-- dataset.py
 |-- list.txt
+|-- logs
+|   |-- 220505.log
+|   |-- debug
+|   |   `-- events.out.tfevents.1651641743.30f8d9c6ea9f.500960.0
+|   `-- test
+|       `-- events.out.tfevents.1651577729.30f8d9c6ea9f.447126.0
 |-- main.py
 |-- models
 |   |-- U_Net.py
-|   `-- __init__.py
+|   |-- __init__.py
+|   `-- __pycache__
+|       |-- U_Net.cpython-38.pyc
+|       `-- __init__.cpython-38.pyc
 |-- requirements.txt
+|-- samples
+|   `-- debug
 |-- toy
 |   |-- FCN_pytorch.ipynb
 |   |-- helper.py
@@ -19,6 +39,11 @@
 |-- trainer.py
 `-- utils
     |-- __init__.py
+    |-- __pycache__
+    |   |-- __init__.cpython-38.pyc
+    |   |-- helper.cpython-38.pyc
+    |   `-- utils.cpython-38.pyc
+    |-- helper.py
     `-- utils.py
 
-4 directories, 17 files
+16 directories, 30 files

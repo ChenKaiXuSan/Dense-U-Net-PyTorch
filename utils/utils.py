@@ -68,3 +68,4 @@ def str2bool(v):
 def to_Tensor(x, *arg):
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.LongTensor
     return Tensor(x, *arg)
+
