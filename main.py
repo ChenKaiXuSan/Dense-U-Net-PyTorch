@@ -6,7 +6,7 @@ from utils.utils import *
 from dataset.dataset import get_Dataloader
 
 # set the gpu number
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import argparse
 # %%
@@ -69,7 +69,7 @@ def main(config):
     
     if config.train:
         if config.model == 'unet':
-            trainer = Trainer_unet(train_dataloader, val_dataloader, config)
+            trainer = Trainer_unet(train_dataloader, val_dataloader, test_dataloader, config)
         trainer.train()
     
 # %% 

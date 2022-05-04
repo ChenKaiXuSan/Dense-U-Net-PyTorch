@@ -11,8 +11,6 @@
             "program": "${workspaceRoot}/main.py",
             "console": "integratedTerminal",
             "args": [
-                "--version",
-                "debug",
                 "--model",
                 "unet",
             ]

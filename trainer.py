@@ -18,12 +18,13 @@ import copy
 
 # %%
 class Trainer_unet(object):
-    def __init__(self, train_dataloader, val_dataloader, config):
+    def __init__(self, train_dataloader, val_dataloader, test_dataloader, config):
         super(Trainer_unet, self).__init__()
 
         # data loader 
         self.train_data_loader = train_dataloader
         self.val_data_loader = val_dataloader
+        self.test_data_loader = test_dataloader
 
         # exact model and loss 
         self.model = config.model
@@ -141,18 +142,21 @@ class Trainer_unet(object):
                     },
                     os.path.join(self.model_save_path, '{}.pth.tar'.format(epoch))
                     )
+                    
+                    print('Best val loss: {:4f}'.format(best_loss))
+        # end one epoch
 
             elapsed = time.time() - start_time
             print('Time: {:.0f}m {:0f}s'.format(elapsed // 60, elapsed % 60))
-            print('Best val loss: {:4f}'.format(best_loss))
 
             # log to the tensorboard
-            self.logger.add_scalar('unet_loss', best_loss.item(), epoch)
-        # end one epoch
+            # self.logger.add_scalar('unet_loss', best_loss.item(), epoch)
 
-        # load best model weights 
-        self.unet.load_state_dict(best_model_wts)
-        
+            # load best model weights 
+            self.unet.load_state_dict(best_model_wts)
+            
+            test_iou = compute_iou(self.unet, self.test_data_loader)
+            print(self.model, f"""\tMean IoU of the test images - {np.around(test_iou, 2)*100}%""")
 
     def build_model(self):
 
