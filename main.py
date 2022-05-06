@@ -16,7 +16,7 @@ def get_parameters():
 
     # Model hyper-parameters
     parser.add_argument('--model', type=str, default='unet', choices=['unet', 'fcn'])
-    parser.add_argument('--img_size', type=int, default=128)
+    parser.add_argument('--img_size', type=int, default=256)
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
     parser.add_argument('--version', type=str, default='test', help='the version of the path, for implement')
 
@@ -50,7 +50,7 @@ def get_parameters():
     parser.add_argument('--model_save_step', type=int, default=1000)
 
 
-    return parser.parse_args()
+    return parser
 
 # %%
 def main(config):
@@ -74,6 +74,6 @@ def main(config):
     
 # %% 
 if __name__ == '__main__':
-    config = get_parameters()
+    config = get_parameters().parse_args()
     print(config)
     main(config)

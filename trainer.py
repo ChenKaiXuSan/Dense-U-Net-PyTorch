@@ -10,7 +10,8 @@ import torch
 import torchvision
 from torch.optim import lr_scheduler
 
-from models.U_Net import UNet
+# from models.U_Net import UNet
+from models.UNet import UNet
 from utils.utils import *
 from utils.helper import *
 
@@ -160,7 +161,8 @@ class Trainer_unet(object):
 
     def build_model(self):
 
-        self.unet = UNet(n_class=1).cuda()
+        # self.unet = UNet(n_class=1).cuda()
+        self.unet = UNet().cuda()
 
         # optimizer 
         self.unet_optimizer = torch.optim.Adamax(self.unet.parameters(), lr=self.lr, betas=[self.beta1, self.beta2])

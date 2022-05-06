@@ -28,7 +28,7 @@ from sklearn.model_selection import train_test_split
 # %%
 # File path line length images for later sorting
 # len(/kaggle/input/lgg-mri-segmentation/kaggle_3m/TCGA_DU_6404_19850629/TCGA_DU_6404_19850629_ <-!!!43.tif)
-BASE_LEN = 89
+BASE_LEN = 91
 # len(/kaggle/input/lgg-mri-segmentation/kaggle_3m/TCGA_DU_6404_19850629/TCGA_DU_6404_19850629_43 !!!->.tif)
 END_IMG_LEN = 4
 # (/kaggle/input/lgg-mri-segmentation/kaggle_3m/TCGA_DU_6404_19850629/TCGA_DU_6404_19850629_43 !!!->_mask.tif)
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         batch_size = 5
 
     train, val, test = get_Dataloader(opt)
-    for i, (imgs, masks) in enumerate(train):
+    for i, (imgs, masks) in enumerate(test):
 
         print(i, imgs.shape, masks.shape)
         print(masks.shape)
@@ -216,12 +216,13 @@ if __name__ == "__main__":
         img = make_grid(imgs, normalize=True).numpy()
         img = np.transpose(img, (1, 2, 0))
 
-        mask = masks[0]
+        mask = masks
         mask = make_grid(mask, normalize=True).numpy()
         mask = np.transpose(mask, (1, 2, 0))
 
         plt.imshow(img)
-        # plt.imshow(mask)
+        plt.show()
+        plt.imshow(mask)
         plt.show()
         plt.close()
         break
