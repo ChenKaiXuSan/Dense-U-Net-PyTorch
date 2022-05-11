@@ -1,7 +1,9 @@
-# U-Net-PyTorch
+# Dense-U-Net-PyTorch
+
 This repository contains simple PyTorch implementations of U-Net structure.
 
 ## Overview
+
 This repository contains an Pytorch implementation of U-Net structure.
 With full coments and my code style.
 
@@ -10,12 +12,17 @@ There have two toy structure of U-Net and FCN implementaion.
 - [FCN](toy/FCN_pytorch.ipynb)
 
 ## About U-Net
+
 If you're new to U-Net structure, here's an abstract straight from the paper[1]:
 
 There is large consent that successful training of deep networks requires many thousand annotated training samples. In this paper, we present a network and training strategy that relies on the strong use of data augmentation to use the available annotated samples more efficiently. The  architecture consists of a contracting path to capture context and a symmetric expanding path that enables precise localization. We show that such a network can be trained end-to-end from very
 few images and outperforms the prior best method (a sliding-window convolutional network) on the ISBI challenge for segmentation of neuronal structures in electron microscopic stacks. Using the same network trained on transmitted light microscopy images (phase contrast and DIC) we won the ISBI cell tracking challenge 2015 in these categories by a large margin. Moreover, the network is fast. Segmentation of a 512x512 image takes less than a second on a recent GPU.
 
-## Dataset 
+## Dataset
+
+Dataset used for development and evaluation was made publicly available on Kaggle: kaggle.com/mateuszbuda/lgg-mri-segmentation. It contains MR images from TCIA LGG collection with segmentation masks approved by a board-certified radiologist at Duke University.
+
+![brain](imgs/dataset.png)
 <!-- - MNIST
 `python3 main.py --dataset mnist --channels 1`
 - FashionMNIST
@@ -79,3 +86,4 @@ For the 10k epochs training on different dataset, compare with about 10000 sampl
 ## Reference
 1. [U-Net](https://arxiv.org/abs/1505.04597)
 2. [FCN](https://arxiv.org/abs/1411.4038)
+3. [U-Net for brain segmentation](https://github.com/mateuszbuda/brain-segmentation-pytorch)

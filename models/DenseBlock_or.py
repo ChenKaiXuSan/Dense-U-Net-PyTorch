@@ -20,6 +20,7 @@ def _bn_function_factory(norm, relu, conv):
 
     return bn_function
 
+
 class _DenseLayer(nn.Module):
     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate, efficient=False):
         super(_DenseLayer, self).__init__()
@@ -44,6 +45,7 @@ class _DenseLayer(nn.Module):
         if self.drop_rate > 0:
             new_features = F.dropout(new_features, p=self.drop_rate, training=self.training)
         return new_features
+
 
 class _Transition(nn.Sequential):
     def __init__(self, num_input_features, num_output_features):
@@ -75,6 +77,7 @@ class _DenseBlock(nn.Module):
             features.append(new_features)
         return torch.cat(features, 1)
 
+
 class DenseNet(nn.Module):
     r"""Densenet-BC model class, based on
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`
@@ -89,28 +92,51 @@ class DenseNet(nn.Module):
         small_inputs (bool) - set to True if images are 32x32. Otherwise assumes images are larger.
         efficient (bool) - set to True to use checkpointing. Much more memory efficient, but slower.
     """
-    def __init__(self, growth_rate=12, num_layers=16, compression=0.5,
+    def __init__(self, growth_rate=12, block_config=(16, 16, 16), compression=0.5,
                  num_init_features=24, bn_size=4, drop_rate=0,
-                 efficient=False):
+                 num_classes=10, small_inputs=True, efficient=False):
 
         super(DenseNet, self).__init__()
         assert 0 < compression <= 1, 'compression of densenet should be between 0 and 1'
 
-        #  Denseblock
-        block = _DenseBlock(
-            num_layers=num_layers,
-            num_input_features=num_init_features,
-            bn_size=bn_size,
-            growth_rate=growth_rate,
-            drop_rate=drop_rate,
-            efficient=efficient,
-        )
+        # First convolution
+        if small_inputs:
+            self.features = nn.Sequential(OrderedDict([
+                ('conv0', nn.Conv2d(3, num_init_features, kernel_size=3, stride=1, padding=1, bias=False)),
+            ]))
+        else:
+            self.features = nn.Sequential(OrderedDict([
+                ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
+            ]))
+            self.features.add_module('norm0', nn.BatchNorm2d(num_init_features))
+            self.features.add_module('relu0', nn.ReLU(inplace=True))
+            self.features.add_module('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1,
+                                                           ceil_mode=False))
 
-        # for the next encoder
-        self.num_features = num_init_features + num_layers * growth_rate
+        # Each denseblock
+        num_features = num_init_features
+        for i, num_layers in enumerate(block_config):
+            block = _DenseBlock(
+                num_layers=num_layers,
+                num_input_features=num_features,
+                bn_size=bn_size,
+                growth_rate=growth_rate,
+                drop_rate=drop_rate,
+                efficient=efficient,
+            )
+            self.features.add_module('denseblock%d' % (i + 1), block)
+            num_features = num_features + num_layers * growth_rate
+            if i != len(block_config) - 1:
+                trans = _Transition(num_input_features=num_features,
+                                    num_output_features=int(num_features * compression))
+                self.features.add_module('transition%d' % (i + 1), trans)
+                num_features = int(num_features * compression)
 
-        self.dense_block = nn.Sequential()
-        self.dense_block.add_module('denseblock%d' % (1), block)
+        # Final batch norm
+        self.features.add_module('norm_final', nn.BatchNorm2d(num_features))
+
+        # Linear layer
+        self.classifier = nn.Linear(num_features, num_classes)
 
         # Initialization
         for name, param in self.named_parameters():
@@ -124,26 +150,29 @@ class DenseNet(nn.Module):
             elif 'classifier' in name and 'bias' in name:
                 param.data.fill_(0)
 
-
-
-            # num_features = num_features + num_layers * growth_rate
-            # if i != len(block_config) - 1:
-            #     trans = _Transition(num_input_features=num_features,
-            #                         num_output_features=int(num_features * compression))
-            #     self.features.add_module('transition%d' % (i + 1), trans)
-            #     num_features = int(num_features * compression)
-
-    def _get_num_features(self):
-        return self.num_features
-
     def forward(self, x):
-        features = self.dense_block(x)
-        return features
+        features = self.features(x)
+        out = F.relu(features, inplace=True)
+        out = F.adaptive_avg_pool2d(out, (1, 1))
+        out = torch.flatten(out, 1)
+        out = self.classifier(out)
+        return out
 
-# %%
+# %% 
 model = DenseNet(
-    growth_rate=12,
-    num_init_features= 12 * 2,
-    efficient=True,
+    growth_rate=12, 
+    num_init_features=12 * 2,
+    num_classes=10,
+    small_inputs=True,
+    efficient=True
 )
 print(model)
+
+input = torch.randn((3, 3, 299, 299))
+pred = model(input)
+
+from torchinfo import summary
+
+summary(model, input_size=(3, 3, 299, 299))
+
+

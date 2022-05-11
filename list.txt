@@ -1,11 +1,87 @@
 .
 |-- README.md
 |-- __pycache__
+|   |-- main.cpython-38.pyc
 |   `-- trainer.cpython-38.pyc
 |-- checkpoint
-|   |-- debug
-|   |   `-- 0.pth.tar
+|   |-- 0511
+|   |   |-- 0.pth.tar
+|   |   |-- 1.pth.tar
+|   |   |-- 11.pth.tar
+|   |   |-- 12.pth.tar
+|   |   |-- 14.pth.tar
+|   |   |-- 15.pth.tar
+|   |   |-- 16.pth.tar
+|   |   |-- 18.pth.tar
+|   |   |-- 19.pth.tar
+|   |   |-- 2.pth.tar
+|   |   |-- 21.pth.tar
+|   |   |-- 22.pth.tar
+|   |   |-- 23.pth.tar
+|   |   |-- 24.pth.tar
+|   |   |-- 25.pth.tar
+|   |   |-- 26.pth.tar
+|   |   |-- 27.pth.tar
+|   |   |-- 3.pth.tar
+|   |   |-- 4.pth.tar
+|   |   |-- 5.pth.tar
+|   |   |-- 6.pth.tar
+|   |   |-- 7.pth.tar
+|   |   |-- 8.pth.tar
+|   |   `-- 9.pth.tar
+|   |-- 220504
+|   |   |-- 0.pth.tar
+|   |   |-- 13.pth.tar
+|   |   |-- 375.pth.tar
+|   |   |-- 5.pth.tar
+|   |   |-- 59.pth.tar
+|   |   `-- 8.pth.tar
+|   |-- 220506
+|   |   |-- 0.pth.tar
+|   |   |-- 1.pth.tar
+|   |   |-- 10.pth.tar
+|   |   |-- 11.pth.tar
+|   |   |-- 12.pth.tar
+|   |   |-- 129.pth.tar
+|   |   |-- 14.pth.tar
+|   |   |-- 15.pth.tar
+|   |   |-- 16.pth.tar
+|   |   |-- 17.pth.tar
+|   |   |-- 18.pth.tar
+|   |   |-- 19.pth.tar
+|   |   |-- 2.pth.tar
+|   |   |-- 20.pth.tar
+|   |   |-- 23.pth.tar
+|   |   |-- 24.pth.tar
+|   |   |-- 26.pth.tar
+|   |   |-- 3.pth.tar
+|   |   |-- 34.pth.tar
+|   |   |-- 37.pth.tar
+|   |   |-- 4.pth.tar
+|   |   |-- 44.pth.tar
+|   |   |-- 48.pth.tar
+|   |   |-- 49.pth.tar
+|   |   |-- 5.pth.tar
+|   |   |-- 50.pth.tar
+|   |   |-- 52.pth.tar
+|   |   |-- 54.pth.tar
+|   |   |-- 6.pth.tar
+|   |   |-- 61.pth.tar
+|   |   |-- 65.pth.tar
+|   |   |-- 67.pth.tar
+|   |   |-- 7.pth.tar
+|   |   |-- 71.pth.tar
+|   |   |-- 73.pth.tar
+|   |   |-- 74.pth.tar
+|   |   |-- 8.pth.tar
+|   |   |-- 9.pth.tar
+|   |   `-- 96.pth.tar
 |   `-- test
+|       |-- 0.pth.tar
+|       |-- 1.pth.tar
+|       |-- 2.pth.tar
+|       |-- 3.pth.tar
+|       `-- 4.pth.tar
 |-- dataset
 |   |-- __init__.py
 |   |-- __pycache__
@@ -16,21 +92,37 @@
 |   `-- dataset.py
 |-- list.txt
 |-- logs
-|   |-- 220505.log
-|   |-- debug
-|   |   `-- events.out.tfevents.1651641743.30f8d9c6ea9f.500960.0
+|   |-- 0511
+|   |   `-- events.out.tfevents.1652241365.30f8d9c6ea9f.2087428.0
+|   |-- 0511.log
+|   |-- 220504
+|   |   `-- events.out.tfevents.1651643286.30f8d9c6ea9f.518029.0
+|   |-- 220504.log
+|   |-- 220506
+|   |   `-- events.out.tfevents.1651806581.30f8d9c6ea9f.717833.0
+|   |-- 220506.log
 |   `-- test
-|       `-- events.out.tfevents.1651577729.30f8d9c6ea9f.447126.0
+|       `-- events.out.tfevents.1651806230.30f8d9c6ea9f.713265.0
 |-- main.py
 |-- models
-|   |-- U_Net.py
+|   |-- DenseBlock.py
+|   |-- DenseBlock_or.py
+|   |-- DenseUNet.py
+|   |-- EfficientNetV2.py
+|   |-- UNet.py
 |   |-- __init__.py
 |   `-- __pycache__
+|       |-- DenseBlock.cpython-38.pyc
+|       |-- UNet.cpython-38.pyc
 |       |-- U_Net.cpython-38.pyc
 |       `-- __init__.cpython-38.pyc
 |-- requirements.txt
 |-- samples
-|   `-- debug
+|   |-- 0511
+|   |-- 220504
+|   |-- 220506
+|   `-- test
+|-- test.ipynb
 |-- toy
 |   |-- FCN_pytorch.ipynb
 |   |-- helper.py
@@ -46,4 +138,4 @@
     |-- helper.py
     `-- utils.py
 
-16 directories, 30 files
+23 directories, 115 files
