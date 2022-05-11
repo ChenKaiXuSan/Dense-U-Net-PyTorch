@@ -49,6 +49,7 @@ For the lgg brain dataset, we set the num layer and growth rate like:
 | dense block bottleneck | 16        | 32          |
 
 - [ ] todo look for the another number
+
 ## Implement
 
 ``` python
@@ -57,9 +58,9 @@ For the lgg brain dataset, we set the num layer and growth rate like:
 
 ## Usage
 
-- dense unet model
+- dense unet model  
 `python3 main.py --version [version] --batch_size [] --model dense_unet >logs/[log_path]`
-- unet model  
+- unet model   
 `python3 main.py --version [version] --batch_size [] --model unet >logs/[log_path]`
 
 
