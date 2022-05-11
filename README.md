@@ -48,7 +48,7 @@ For the lgg brain dataset, we set the num layer and growth rate like:
 | dense block 3          | 16        | 16          |
 | dense block bottleneck | 16        | 32          |
 
-:todo look for the another number
+> :todo look for the another number
 ## Implement
 
 ``` python
