@@ -10,17 +10,16 @@ import torch
 import torchvision
 from torch.optim import lr_scheduler
 
-from models.UNet import UNet
-# from models.DenseUNet import UNet
+from models.DenseUNet import UNet
 from utils.utils import *
 from utils.helper import *
 
 import copy
 
 # %%
-class Trainer_unet(object):
+class Trainer_dense_unet(object):
     def __init__(self, train_dataloader, val_dataloader, test_dataloader, config):
-        super(Trainer_unet, self).__init__()
+        super(Trainer_dense_unet, self).__init__()
 
         # data loader 
         self.train_data_loader = train_dataloader

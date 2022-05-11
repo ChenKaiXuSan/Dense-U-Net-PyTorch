@@ -2,6 +2,7 @@
 import os
 
 from trainer import Trainer_unet
+from trainer_dense import Trainer_dense_unet
 from utils.utils import *
 from dataset.dataset import get_Dataloader
 
@@ -15,7 +16,7 @@ def get_parameters():
     parser = argparse.ArgumentParser()
 
     # Model hyper-parameters
-    parser.add_argument('--model', type=str, default='unet', choices=['unet', 'fcn'])
+    parser.add_argument('--model', type=str, default='dense_unet', choices=['unet', 'dense_unet'])
     parser.add_argument('--img_size', type=int, default=256)
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
     parser.add_argument('--version', type=str, default='test', help='the version of the path, for implement')
@@ -70,6 +71,8 @@ def main(config):
     if config.train:
         if config.model == 'unet':
             trainer = Trainer_unet(train_dataloader, val_dataloader, test_dataloader, config)
+        if config.model == 'dense_unet':
+            trainer = Trainer_dense_unet(train_dataloader, val_dataloader, test_dataloader, config)
         trainer.train()
     
 # %% 

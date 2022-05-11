@@ -14,6 +14,17 @@
                 "--model",
                 "unet",
             ]
+        },
+        {
+            "name": "dense_unet",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceRoot}/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model",
+                "dense_unet",
+            ]
         }
     ]
 }

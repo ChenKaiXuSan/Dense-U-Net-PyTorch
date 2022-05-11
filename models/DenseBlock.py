@@ -90,7 +90,7 @@ class DenseNet(nn.Module):
         efficient (bool) - set to True to use checkpointing. Much more memory efficient, but slower.
     """
     def __init__(self, growth_rate=12, num_layers=16, compression=0.5,
-                 num_init_features=24, bn_size=4, drop_rate=0,
+                 num_init_features=24, bn_size=4, drop_rate=0, name = 'name',
                  efficient=False):
 
         super(DenseNet, self).__init__()
@@ -106,11 +106,17 @@ class DenseNet(nn.Module):
             efficient=efficient,
         )
 
-        # for the next encoder
-        self.num_features = num_init_features + num_layers * growth_rate
-
-        self.dense_block = nn.Sequential()
-        self.dense_block.add_module('denseblock%d' % (1), block)
+        self.dense_block = nn.Sequential(
+            OrderedDict(
+                [
+                    (
+                        "denseblock" + name,
+                        block
+                    )
+                ]
+            )
+        )
+        # self.dense_block.add_module('denseblock%d' % (1), block)
 
         # Initialization
         for name, param in self.named_parameters():
@@ -132,9 +138,6 @@ class DenseNet(nn.Module):
             #                         num_output_features=int(num_features * compression))
             #     self.features.add_module('transition%d' % (i + 1), trans)
             #     num_features = int(num_features * compression)
-
-    def _get_num_features(self):
-        return self.num_features
 
     def forward(self, x):
         features = self.dense_block(x)
