@@ -13,20 +13,20 @@ class UNet(nn.Module):
 
         features = init_features
         self.encoder1 = UNet._block(in_channels, features, name="enc1") # 16
-        self.dense1 = DenseNet(growth_rate=4, num_layers=4, num_init_features=features, name='1') # f * 2 = 32
+        self.dense1 = DenseNet(growth_rate=1, num_layers=16, num_init_features=features, name='1', efficient=True) # f * 2 = 32
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.encoder2 = UNet._block(features * 2, features * 4, name="enc2") # f * 4 = 64
-        self.dense2 = DenseNet(growth_rate=8, num_layers=8, num_init_features=features * 4, name='2') # f * 8 = 128 
+        self.dense2 = DenseNet(growth_rate=4, num_layers=16, num_init_features=features * 4, name='2', efficient=True) # f * 8 = 128 
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.encoder3 = UNet._block(features * 8, features * 16, name="enc3") # f * 16 = 256
-        self.dense3 = DenseNet(growth_rate=16, num_layers=16, num_init_features=features * 16, name='3') # f * 32 = 512
+        self.dense3 = DenseNet(growth_rate=16, num_layers=16, num_init_features=features * 16, name='3', efficient=True) # f * 32 = 512
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # bottleneck 
         self.bottleneck = UNet._block(features * 32, features * 32, name="bottleneck") # f * 32 = 512
-        self.bottleneck_dense = DenseNet(growth_rate=16, num_layers=32, num_init_features=features * 32, name = 'bottleneck') # f * 64 = 1024
+        self.bottleneck_dense = DenseNet(growth_rate=32, num_layers=16, num_init_features=features * 32, name = 'bottleneck', efficient=True) # f * 64 = 1024
 
         self.upconv3 = nn.ConvTranspose2d(
             features * 64, features * 32, kernel_size=2, stride=2
