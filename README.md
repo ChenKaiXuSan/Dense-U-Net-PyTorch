@@ -39,16 +39,25 @@ The Dense Block output feature is:
 
 `output feature = pre feature + num layer * growth rate`
 
+The num layer means how many layer in one dense block.
+The growth rate means how many filters to add each layer ('k' in paper).
+
 For the lgg brain dataset, we set the num layer and growth rate like:
 
-| dataset                | num layer | growth rate |
-| ---------------------- | --------- | ----------- |
-| dense block 1          | 4         | 4           |
-| dense block 2          | 8         | 8           |
-| dense block 3          | 16        | 16          |
-| dense block bottleneck | 16        | 32          |
+|               | dense block 1 | dense block 2 | dense block 3 | dense block bottleneck | mean IoU |
+| ------------- | ------------- | ------------- | ------------- | ---------------------- | -------- |
+| growth rate_1 | 4             | 8             | 16            | 32                     |
+| num layer_1   | 4             | 8             | 16            | 16                     | 89% |
+| growth rate_2 | 1             | 4             | 16            | 32                     |
+| num layer_2   | 16            | 16            | 16            | 16                     | 92% |
+| growth rate_3 | 2             | 8             | 32            | 64                     |
+| num layer_3   | 8             | 8             | 8             | 8                      | 90%      |
 
-
+| unet | mean iou |
+| ---- | -------- |
+| bn16 | 87%  |
+| bn32 | 91%  |
+| bn64 | 97%  |
 
 - [ ] todo look for the another number
 
@@ -62,11 +71,8 @@ For the lgg brain dataset, we set the num layer and growth rate like:
 
 - dense unet model  
 `python3 main.py --version [version] --batch_size [] --model dense_unet >logs/[log_path]`
-- unet model   
+- unet model
 `python3 main.py --version [version] --batch_size [] --model unet >logs/[log_path]`
-
-
-
 
 ## Directory Structure
 

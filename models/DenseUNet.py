@@ -126,14 +126,14 @@ class UNet(nn.Module):
         )
 
 # %%
-from torchinfo import summary
+# from torchinfo import summary
 
-model = UNet()
-print(model)
+# model = UNet()
+# print(model)
 
-# summary(model, input_size=(3, 3, 256))
-# %%
-input = torch.randn((3, 3, 256, 256))
+# # summary(model, input_size=(3, 3, 256))
+# # %%
+# input = torch.randn((3, 3, 256, 256))
 
-pred = model(input)
+# pred = model(input)
 # %%
