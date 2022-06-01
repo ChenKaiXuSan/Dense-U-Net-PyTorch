@@ -59,12 +59,42 @@ For the lgg brain dataset, we set the num layer and growth rate like:
 | bn32 | 91%  |
 | bn64 | 97%  |
 
-- [ ] todo look for the another number
 
 ## Implement
 
 ``` python
+usage: main.py [-h] [--model {unet,dense_unet}] [--img_size IMG_SIZE] [--channels CHANNELS] [--version VERSION] [--epochs EPOCHS] [--batch_size BATCH_SIZE] [--num_workers NUM_WORKERS] [--lr LR] [--beta1 BETA1] [--beta2 BETA2] [--pretrained_model PRETRAINED_MODEL] [--train TRAIN]
+               [--parallel PARALLEL] [--dataset {lgg}] [--use_tensorboard USE_TENSORBOARD] [--dataroot DATAROOT] [--log_path LOG_PATH] [--model_save_path MODEL_SAVE_PATH] [--sample_path SAMPLE_PATH] [--log_step LOG_STEP] [--sample_step SAMPLE_STEP] [--model_save_step MODEL_SAVE_STEP]
 
+optional arguments:
+  -h, --help            show this help message and exit
+  --model {unet,dense_unet}
+  --img_size IMG_SIZE
+  --channels CHANNELS   number of image channels
+  --version VERSION     the version of the path, for implement
+  --epochs EPOCHS       numer of epochs of training
+  --batch_size BATCH_SIZE
+                        batch size for the dataloader
+  --num_workers NUM_WORKERS
+  --lr LR               use TTUR lr rate for Adam
+  --beta1 BETA1
+  --beta2 BETA2
+  --pretrained_model PRETRAINED_MODEL
+  --train TRAIN
+  --parallel PARALLEL
+  --dataset {lgg}
+  --use_tensorboard USE_TENSORBOARD
+                        use tensorboard to record the loss
+  --dataroot DATAROOT   dataset path
+  --log_path LOG_PATH   the output log path
+  --model_save_path MODEL_SAVE_PATH
+                        model save path
+  --sample_path SAMPLE_PATH
+                        the generated sample saved path
+  --log_step LOG_STEP   every default{10} epoch save to the log
+  --sample_step SAMPLE_STEP
+                        every default{100} epoch save the generated images and real images
+  --model_save_step MODEL_SAVE_STEP
 ```
 
 ## Usage
